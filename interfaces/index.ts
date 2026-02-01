@@ -37,6 +37,7 @@ export interface MainMovieProps {
     tags?: string[];
     whereToWatch?: string[];
     addedAt?: string;
+    description?: string;
 }
 
 export interface Review {

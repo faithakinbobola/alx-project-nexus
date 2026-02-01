@@ -5,7 +5,7 @@ import {
     GenreTypesProps,
     MainMovieProps,
 } from "@/interfaces";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Image from "next/image";
 
 const GenreList: React.FC = () => {
@@ -74,8 +74,9 @@ const GenreList: React.FC = () => {
             try {
                 const allMovies = await fetchAllPages<MainMovieProps>("/movie/popular", controller.signal);
                 setMovies(allMovies);
-            } catch (error: any) {
-                if (error.code === "ERR_CANCELED") {
+            } catch (error) {
+                const err = error as AxiosError;
+                if (err?.code === "ERR_CANCELED") {
                     console.log("Request canceled, not an error.");
                 } else {
                     console.error("Error fetching movies:", error);

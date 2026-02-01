@@ -2,7 +2,7 @@ import { FaPlay } from "react-icons/fa";
 import MatchOfTheDay from "@/components/common/MatchOfTheDay";
 import GenreList from "@/components/common/GenreList";
 import { useEffect, useState } from "react";
-import { MainMovieProps, MovieApiResponse } from "@/interfaces";
+import { MainMovieProps } from "@/interfaces";
 import axios from "axios";
 import Image from "next/image";
 

@@ -50,23 +50,23 @@ const MovieDetail: React.FC<{ property: MainMovieProps }> = ({ property }) => {
         <div className="">
             <div className="w-full">
                 {/* Backdrop Image */}
-                <div className="w-full h-[250px] md:h-[50vh]">
+                <div className="w-full h-62.5 md:h-[50vh]">
                     <Image
-                        src={property.poster_url}
+                        src={property.poster_path}
                         alt={`${property.title} trailer`}
                         width={800}
                         height={300}
-                        className="w-full h-[350px] md:h-[50vh] object-cover"
+                        className="w-full h-87.5 md:h-[50vh] object-cover"
                     />
                 </div>
 
                 {/* Overlay content */}
-                <div className="px-4 md:px-12 -mt-[100px] md:-mt-[150px]">
+                <div className="px-4 md:px-12 -mt-25 md:-mt-37.5">
                     <div className="flex flex-col md:flex-row">
                         {/* Poster */}
                         <div className="w-[130px] md:w-[230px]">
                             <Image
-                                src={property.poster_url}
+                                src={property.poster_path}
                                 alt={`${property.title} poster`}
                                 width={230}
                                 height={325}
@@ -92,8 +92,8 @@ const MovieDetail: React.FC<{ property: MainMovieProps }> = ({ property }) => {
 
                             {/* Genres */}
                             <div className="flex flex-wrap gap-2 mt-2">
-                                {property.genres?.length > 0
-                                    ? property.genres.map((genreType, index) => (
+                                {property.genre_ids?.length > 0
+                                    ? property.genre_ids.map((genreType, index) => (
                                         <button key={index} className="btn-one">{genreType}</button>
                                     ))
                                     : <button>Uncategorized</button>
