@@ -2,7 +2,7 @@
 
 :root {
   --background: #030712;
-  --foreground: #4B5563;
+  --foreground: #fff;
 }
 
 @theme inline {
@@ -15,7 +15,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #fff;
   }
 }
 
@@ -42,7 +42,7 @@ body {
 }
 
 .nav-link {
-  @apply hover:text-gray-600 active:text-orange-400;
+  @apply hover:text-gray-400 active:text-orange-400;
 }
 
 .btn {

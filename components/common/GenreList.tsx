@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import GenreButton from "./GenreButton";
 import Link from "next/link";
 import {
-    GenreApiResponse,
     GenreTypesProps,
     MainMovieProps,
-    MovieApiResponse,
 } from "@/interfaces";
 import axios from "axios";
 import Image from "next/image";
@@ -16,57 +14,90 @@ const GenreList: React.FC = () => {
     const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
-    const fetchAllPages = async <T,>(url: string): Promise<T[]> => {
-        let results: T[] = [];
-        let nextUrl: string | null = url;
+    const fetchAllPages = async <T,>(endpoint: string, signal?: AbortSignal): Promise<T[]> => {
+        const results: T[] = [];
+        let page = 1;
+        const totalPages = 5; 
 
         try {
-            while (nextUrl) {
-                const { data } = await axios.get(url);
-                results = [...results, ...data.results];
-                nextUrl = data.next; 
-                url = nextUrl ?? ""; 
+            while (page <= totalPages) {
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
+                    params: { page },
+                    signal,
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_BEARER}`,
+                    },
+                });
+
+                results.push(...data.results);
+                page++;
             }
         } catch (err) {
             console.error("Error fetching paginated data:", err);
         }
 
+        console.log("Final results length:", results.length);
         return results;
     };
 
+    
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchGenre = async () => {
             setLoading(true);
-
             try {
-                const [allGenres, allMovies] = await Promise.all([
-                    fetchAllPages<GenreTypesProps>(
-                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/genres/`
-                    ),
-                    fetchAllPages<MainMovieProps>(
-                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/movies/`
-                    ),
-                ]);
+                const genreRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/genre/movie/list`, {
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_BEARER}`,
+                    },
+                });
 
-                setGenres(allGenres);
-                setMovies(allMovies);
-            } catch (error) {
-                console.error("Error fetching data:", error);
+                setGenres(genreRes.data.genres);
+            } catch (e) {
+                console.error("Error fetching genres", e);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
+        fetchGenre();
     }, []);
 
+    // Fetch movies
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchAll = async () => {
+            setLoading(true);
+
+            try {
+                const allMovies = await fetchAllPages<MainMovieProps>("/movie/popular", controller.signal);
+                setMovies(allMovies);
+            } catch (error: any) {
+                if (error.code === "ERR_CANCELED") {
+                    console.log("Request canceled, not an error.");
+                } else {
+                    console.error("Error fetching movies:", error);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAll();
+
+        return () => controller.abort();
+    }, []);
+
+    // Handle genre selection
     const handleGenreClick = (genre: string) => {
         setSelectedGenre((prev) => (prev === genre ? null : genre));
     };
 
-
+    // Filter movies by genre
     const filteredMovies = selectedGenre
-        ? movies.filter((movie) => movie.genres.includes(selectedGenre))
+        ? movies.filter((movie) => movie.genre_ids.includes(parseInt(selectedGenre)))
         : movies;
 
     if (loading) {
@@ -93,10 +124,10 @@ const GenreList: React.FC = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 {filteredMovies.map((movie) => (
-                    <Link href={`/movie/${movie.movie_id}`} key={movie.movie_id}>
+                    <Link href={`/movie/${movie.id}`} key={movie.id}>
                         <div className="flex flex-col gap-3 group">
                             <Image
-                                src={movie.poster_url}
+                                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                                 alt={movie.title}
                                 width={350}
                                 height={150}

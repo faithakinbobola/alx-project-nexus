@@ -13,8 +13,16 @@ const MatchOfTheDay: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const moviesRes = await axios.get<MovieApiResponse>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/movies/`)
-                setMovies(moviesRes.data.results);
+                const moviesRes = await axios.get<MovieApiResponse>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/trending/all/day`,
+                    {
+                        headers: {
+                            Accept: "application/json",
+                            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_BEARER}`,
+                        }
+                    }
+                )
+                const movies = moviesRes.data.results;
+                setMovies(movies);
             } catch (error) {
                 console.log("Error fetching data", error);
             } finally {
@@ -25,15 +33,15 @@ const MatchOfTheDay: React.FC = () => {
         fetchData()
     }, [])
 
-    const [randomMovies, setRandomMovies] = useState<typeof movies>([]);
+    // const [randomMovies, setRandomMovies] = useState<MainMovieProps[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (movies.length > 0) {
-            const shuffled = [...movies].sort(() => Math.random() - 0.5).slice(0, 10);
-            setRandomMovies(shuffled);
-        }
-    }, [movies]);
+    // useEffect(() => {
+    //     if (movies.length > 0) {
+    //         const shuffled = [...movies].sort(() => Math.random() - 0.5).slice(0, 10);
+    //         setRandomMovies(shuffled);
+    //     }
+    // }, [movies]);
 
     if (loading) {
         return <p>Loading...</p>
@@ -62,21 +70,22 @@ const MatchOfTheDay: React.FC = () => {
                 </button>
                 <div ref={scrollRef} className="flex overflow-x-auto no-scrollbar scroll-smooth space-x-4 px-6">
                     {
-                        randomMovies.map(({ poster_url, title, movie_id }: MainMovieProps) => (
-                            <Link href={`/movie/${movie_id}`} key={movie_id}>
-                                <div className="flex-shrink-0 w-[250px] group">
+                        movies.map(({ poster_path, title, id, name, vote_average }: MainMovieProps) => (
+                            <Link href={`/movie/${id}`} key={id}>
+                                <div className="shrink-0 w-62.5 group">
                                     <div className="w-full">
                                         <Image
-                                            src={poster_url}
-                                            alt={title}
+                                            src={`https://image.tmdb.org/t/p/original${poster_path}`}
+                                            alt={title || name || "Unknown"}
                                             width={350}
                                             height={90}
-                                            className="object-cover w-full h-[150px] rounded-lg"
+                                            className="object-cover w-full h-37.5 rounded-lg"
+                                            priority
                                         />
                                     </div>
                                     <div className="flex items-center justify-between mt-2">
-                                        <div className="truncate">{title}</div>
-                                        <div>{Math.floor(Math.random() * 100)}%</div>
+                                        <div className="truncate">{title || name || "Unknown"}</div>
+                                        <div>{Math.floor(vote_average/10 * 100)}%</div>
                                     </div>
                                 </div>
                             </Link>
